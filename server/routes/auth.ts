@@ -6,8 +6,23 @@ import { z } from "zod";
 
 const router = express.Router();
 
+const signupInput = z.object({
+  username: z.string(),
+  password: z.string(),
+})
+
+type SignupParams = z.infer<typeof signupInput>;
+
+// Signup
+
 router.post('/signup', async (req, res) => {
   const { username, password } = req.body;
+  const parsedInput = signupInput.safeParse(req.body);
+
+  if (!parsedInput.success) {
+    return res.status(403).json({ message: 'Error while Parsing' }); //403 is forbidden
+  }
+
   const user = await User.findOne({ username });
   if (user) {
     res.status(403).json({ message: 'User already exists' });
@@ -18,6 +33,8 @@ router.post('/signup', async (req, res) => {
     res.json({ message: 'User created successfully', token });
   }
 });
+
+// Login
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -40,4 +57,4 @@ router.get('/me', authenticateJwt, async (req, res) => {
   }
 });
 
-export default router
+export default router;
