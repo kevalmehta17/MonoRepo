@@ -2,26 +2,25 @@ import jwt from "jsonwebtoken";
 import express from 'express';
 import { authenticateJwt, SECRET } from "../middleware/";
 import { User } from "../db";
-import { z } from "zod";
-
+import { signupInput } from "@kevalmehta/common";
 const router = express.Router();
 
-const signupInput = z.object({
-  username: z.string(),
-  password: z.string(),
-})
 
-type SignupParams = z.infer<typeof signupInput>;
 
 // Signup
 
 router.post('/signup', async (req, res) => {
-  const { username, password } = req.body;
-  const parsedInput = signupInput.safeParse(req.body);
+  // const { username, password } = req.body;
+
+  // Validate input through the package i published on npm (common)
+  let parsedInput = signupInput.safeParse(req.body)
 
   if (!parsedInput.success) {
-    return res.status(403).json({ message: 'Error while Parsing' }); //403 is forbidden
+    res.status(403).json({ message: "Invalid input" }) //403 for forbidden
   }
+
+  const username = parsedInput.data?.username;
+  const password = parsedInput.data?.password;
 
   const user = await User.findOne({ username });
   if (user) {
